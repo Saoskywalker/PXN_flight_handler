@@ -30,6 +30,7 @@
 /*******************************************************************************/
 /* Global Variable Declaration */
 extern volatile uint8_t  KB_LED_Cur_Status;
+extern uint8_t Jostick_Data_Pack[DEF_ENDP_SIZE_JOSTICK];                           // jostick IN Data Packet
 /*******************************************************************************/
 /* Function Declaration */
 extern void TIM3_Init( uint16_t arr, uint16_t psc );
@@ -45,4 +46,5 @@ extern void MS_Scan( void );
 extern void MS_Scan_Handle( void );
 extern void KB_LED_Handle( void );
 extern void MCU_Sleep_Wakeup_Operate( void );
+void Jostick_Scan_Handle( void );
 #endif

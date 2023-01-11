@@ -12,6 +12,9 @@
 /*******************************************************************************/
 /* Header Files */
 #include "usbd_composite_km.h"
+#include "types_base.h"
+#include "delay.h"
+#include "gpio_board.h"
 
 uint8_t USBD_ENDPx_DataUp( uint8_t endp, uint8_t *pbuf, uint16_t len );
 
@@ -38,73 +41,7 @@ volatile uint8_t  USART_Send_Cnt = 0x00;
 
 /*******************************************************************************/
 /* Interrupt Function Declaration */
-void TIM3_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
 void USART2_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
-
-/*********************************************************************
- * @fn      TIM3_Init
- *
- * @brief   Initialize timer3 for keyboard and mouse scan.
- *
- * @param   arr - The specific period value
- *          psc - The specifies prescaler value
- *
- * @return  none
- */
-void TIM3_Init( uint16_t arr, uint16_t psc )
-{
-    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure = { 0 };
-    NVIC_InitTypeDef NVIC_InitStructure = { 0 };
-
-    /* Enable Timer3 Clock */
-    RCC_APB1PeriphClockCmd( RCC_APB1Periph_TIM3, ENABLE );
-
-    /* Initialize Timer3 */
-    TIM_TimeBaseStructure.TIM_Period = arr;
-    TIM_TimeBaseStructure.TIM_Prescaler = psc;
-    TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-    TIM_TimeBaseInit( TIM3, &TIM_TimeBaseStructure );
-
-    TIM_ITConfig( TIM3, TIM_IT_Update, ENABLE );
-
-    NVIC_InitStructure.NVIC_IRQChannel = TIM3_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init( &NVIC_InitStructure );
-
-    /* Enable Timer3 */
-    TIM_Cmd( TIM3, ENABLE );
-}
-
-/*********************************************************************
- * @fn      TIM3_IRQHandler
- *
- * @brief   This function handles TIM3 global interrupt request.
- *
- * @return  none
- */
-void TIM3_IRQHandler( void )
-{
-    if( TIM_GetITStatus( TIM3, TIM_IT_Update ) != RESET )
-    {
-        /* Clear interrupt flag */
-        TIM_ClearITPendingBit( TIM3, TIM_IT_Update );
-
-        /* Handle keyboard scan */
-        KB_Scan( );
-
-        /* Handle mouse scan */
-        MS_Scan( );
-
-        /* Start timing for uploading the key value received from USART2 */
-        if( USART_Send_Flag )
-        {
-            USART_Send_Cnt++;
-        }
-    }
-}
 
 /*********************************************************************
  * @fn      USART2_Init
@@ -642,6 +579,185 @@ void MS_Scan_Handle( void )
     {
         /* Load mouse data to endpoint 2 */
         status = USBD_ENDPx_DataUp(ENDP2, MS_Data_Pack, DEF_ENDP_SIZE_MS);
+        if( status == USB_SUCCESS )
+        {
+            /* Clear flag after successful loading */
+            flag = 0;
+        }
+    }
+}
+
+/*********************************************************************
+ * @fn      Jostick_Scan_Handle
+ *
+ * @brief   Handle jostick scan data.
+ *
+ * @return  none
+ */
+/* Jostick */
+#include "adc_board.h"
+#include "envent_define.h"
+// uint8_t Jostick_Scan_Done = 0; //data value changed                          
+uint8_t Jostick_Data_Pack[DEF_ENDP_SIZE_JOSTICK] = {0};                           // jostick IN Data Packet
+static uint8_t Jostick_old_Data_Pack[DEF_ENDP_SIZE_JOSTICK] = {0};                           // jostick IN Data Packet
+void Jostick_Scan_Handle( void )
+{
+    // static uint8_t i = 0;
+    // uint8_t ll = 0;
+    uint8_t status = 0;
+    static uint8_t flag = 0x00;
+    char vr_x = 0, vr_y = 0;
+
+    if( bDeviceState != CONFIGURED ) //USB枚举失败
+        return;
+
+#if 0 //for demo
+    if( Jostick_Scan_Done )
+    {
+        Jostick_Scan_Done = 0;
+
+        // memset( Jostick_Data_Pack, 0x00, DEF_ENDP_SIZE_JOSTICK );
+
+        if (++i >= 8)
+        {
+            i = 0;
+        }
+        
+        Jostick_Data_Pack[0] = 10*i;
+        // Jostick_Data_Pack[1] = 13*i;
+        // Jostick_Data_Pack[2] = -13*i;
+        Jostick_Data_Pack[3] = -8*i;
+        Jostick_Data_Pack[4] = -5*i;
+        Jostick_Data_Pack[5] = 13*i;
+
+        Jostick_Data_Pack[6] = 0X80>>i;
+        Jostick_Data_Pack[7] = 0XC0>>i;
+        Jostick_Data_Pack[8] = 0X03<<i;
+        // Jostick_Data_Pack[9] = 0X07<<i;
+
+        //change rang: -127~127
+        vr_x = ADC_VR2_VALUE() >> 4;
+        vr_x = vr_x - 128;
+        if (vr_x > 127)
+        {
+            vr_x = 127;
+        }
+        else if (vr_x < -127)
+        {
+            vr_x = -127;
+        }
+
+        //change rang: -127~127
+        vr_y = ADC_VR1_VALUE() >> 4;
+        vr_y = vr_y - 128;
+        if (vr_y > 127)
+        {
+            vr_y = 127;
+        }
+        else if (vr_y < -127)
+        {
+            vr_y = -127;
+        }
+
+        // printf("X = %d, Y = %d\r\n", vr_x, vr_y);
+        Jostick_Data_Pack[1] = vr_x;
+        Jostick_Data_Pack[2] = vr_y;
+
+        if(KEY_6_PIN()==0)
+        {
+            ll |= 0X01;
+            MODE1_LED_PIN(1);
+        }
+        else
+        {
+            MODE1_LED_PIN(0);
+        }
+        if(KEY_7_PIN()==0)
+        {
+            ll |= 0X02;
+            MODE2_LED_PIN(1);
+        }
+        else
+        {
+            MODE2_LED_PIN(0);
+        }
+        if(KEY_8_PIN()==0)
+        {
+            ll |= 0X04;
+            MODE3_LED_PIN(1);
+        }
+        else
+        {
+            MODE3_LED_PIN(0);
+        }
+        if(KEY_9_PIN()==0)
+        {
+            ll |= 0X08;
+        }
+        else
+        {
+        }
+        Jostick_Data_Pack[9] = ll;
+
+        flag = 1;
+    }
+#else
+
+    Jostick_Data_Pack[0] = 0; //throttle
+
+    Jostick_Data_Pack[3] = 0; //z
+    Jostick_Data_Pack[4] = 0; //rx
+    Jostick_Data_Pack[5] = 0; //ry
+
+    //change rang: -127~127
+    vr_x = ADC_VR2_VALUE() >> 4;
+    vr_x = vr_x - 128;
+    if (vr_x > 127)
+    {
+        vr_x = 127;
+    }
+    else if (vr_x < -127)
+    {
+        vr_x = -127;
+    }
+
+    //change rang: -127~127
+    vr_y = ADC_VR1_VALUE() >> 4;
+    vr_y = vr_y - 128;
+    if (vr_y > 127)
+    {
+        vr_y = 127;
+    }
+    else if (vr_y < -127)
+    {
+        vr_y = -127;
+    }
+
+    // printf("X = %d, Y = %d\r\n", vr_x, vr_y);
+    Jostick_Data_Pack[1] = vr_x;
+    Jostick_Data_Pack[2] = vr_y;
+
+    //key
+    Jostick_Data_Pack[6] = jostick_key[0];
+    Jostick_Data_Pack[7] = 0;
+    Jostick_Data_Pack[8] = 0;
+    Jostick_Data_Pack[9] = 0;
+
+    for (size_t i = 0; i < DEF_ENDP_SIZE_JOSTICK; i++)
+    {
+        if(Jostick_old_Data_Pack[i]!=Jostick_Data_Pack[i])
+        {
+            Jostick_old_Data_Pack[i] = Jostick_Data_Pack[i];
+            flag = 1;
+        }
+    }
+
+#endif
+
+    if( flag )
+    {
+        /* Load mouse data to endpoint 2 */
+        status = USBD_ENDPx_DataUp(ENDP2, Jostick_Data_Pack, DEF_ENDP_SIZE_JOSTICK);
         if( status == USB_SUCCESS )
         {
             /* Clear flag after successful loading */

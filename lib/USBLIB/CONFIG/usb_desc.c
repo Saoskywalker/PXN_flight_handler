@@ -54,7 +54,7 @@ const uint8_t  USBD_ConfigDescriptor[] = {
     /* HID Descriptor (jostick) */
     0x09,                           // bLength
     0x21,                           // bDescriptorType
-    0x10, 0x01,                     // bcdHID
+    0x11, 0x01,                     // bcdHID
     0x00,                           // bCountryCode
     0x01,                           // bNumDescriptors
     0x22,                           // bDescriptorType
@@ -164,6 +164,20 @@ const uint8_t USBD_MouseRepDesc[USBD_SIZE_REPORT_DESC_MS] =
     0xC0                            // End Collection
 };
 
+/********************
+ * data format: 
+ * bit:     7   6   5   4   3   2   1   0
+ * byte 0: Throttle(-127~127)
+ * byte 1: x(-127~127)
+ * byte 2: y(-127~127)
+ * byte 3: z(-127~127)
+ * byte 4: rx(-127~127)
+ * byte 5: ry(-127~127)
+ * byte 6: button 7...buttom 0
+ * byte 7: button 15...buttom 8
+ * byte 8: button 23...buttom 16
+ * byte 9: button 31...buttom 24
+ * *********************/
 const uint8_t Jostick_ReportDescriptor[USBD_SIZE_REPORT_DESC_JOSTICK] = {
     0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)
     0x15, 0x00,                    // LOGICAL_MINIMUM (0)

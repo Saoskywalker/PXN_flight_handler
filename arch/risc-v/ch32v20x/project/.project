@@ -1,18 +1,18 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" ?> 
 <projectDescription>
   <name>PXN_flight_handler</name>
-  <comment/>
-  <projects/>
+  <comment />
+  <projects />
   <buildSpec>
     <buildCommand>
       <name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
       <triggers>clean,full,incremental,</triggers>
-      <arguments/>
+      <arguments />
     </buildCommand>
     <buildCommand>
       <name>org.eclipse.cdt.managedbuilder.core.ScannerConfigBuilder</name>
       <triggers>full,incremental,</triggers>
-      <arguments/>
+      <arguments />
     </buildCommand>
   </buildSpec>
   <natures>
@@ -22,9 +22,44 @@
   </natures>
   <linkedResources>
     <link>
+      <name>Core</name>
+      <type>2</type>
+      <locationURI>PARENT-1-PROJECT_LOC/Core</locationURI>
+    </link>
+    <link>
+      <name>Debug</name>
+      <type>2</type>
+      <locationURI>PARENT-1-PROJECT_LOC/Debug</locationURI>
+    </link>
+    <link>
+      <name>Ld</name>
+      <type>2</type>
+      <locationURI>PARENT-1-PROJECT_LOC/Ld</locationURI>
+    </link>
+    <link>
+      <name>Peripheral</name>
+      <type>2</type>
+      <locationURI>PARENT-1-PROJECT_LOC/Peripheral</locationURI>
+    </link>
+    <link>
+      <name>Startup</name>
+      <type>2</type>
+      <locationURI>PARENT-1-PROJECT_LOC/Startup</locationURI>
+    </link>
+    <link>
       <name>lib</name>
       <type>2</type>
       <locationURI>PARENT-4-PROJECT_LOC/lib</locationURI>
+    </link>
+    <link>
+      <name>port</name>
+      <type>2</type>
+      <locationURI>PARENT-1-PROJECT_LOC/port</locationURI>
+    </link>
+    <link>
+      <name>usefull</name>
+      <type>2</type>
+      <locationURI>PARENT-1-PROJECT_LOC/usefull</locationURI>
     </link>
     <link>
       <name>user</name>
@@ -32,40 +67,20 @@
       <locationURI>PARENT-4-PROJECT_LOC/user</locationURI>
     </link>
     <link>
-      <name>Core</name>
+      <name>v01</name>
       <type>2</type>
-      <location>PARENT-1-PROJECT_LOC/Core</location>
+      <locationURI>PARENT-4-PROJECT_LOC/board/v01</locationURI>
     </link>
     <link>
-      <name>Debug</name>
+      <name>public</name>
       <type>2</type>
-      <location>PARENT-1-PROJECT_LOC/Debug</location>
-    </link>
-    <link>
-      <name>Ld</name>
-      <type>2</type>
-      <location>PARENT-1-PROJECT_LOC/Ld</location>
-    </link>
-    <link>
-      <name>Peripheral</name>
-      <type>2</type>
-      <location>PARENT-1-PROJECT_LOC/Peripheral</location>
-    </link>
-    <link>
-      <name>Startup</name>
-      <type>2</type>
-      <location>PARENT-1-PROJECT_LOC/Startup</location>
-    </link>
-    <link>
-      <name>usefull</name>
-      <type>2</type>
-      <location>PARENT-1-PROJECT_LOC/usefull</location>
+      <location>PARENT-2-PROJECT_LOC/public</location>
     </link>
   </linkedResources>
   <filteredResources>
     <filter>
       <id>1595986042669</id>
-      <name/>
+      <name />
       <type>22</type>
       <matcher>
         <id>org.eclipse.ui.ide.multiFilter</id>

@@ -1,4 +1,9 @@
 eclipse.preferences.version=1
 encoding//User/Main.c=UTF-8
+encoding//lib/USBLIB/USB-Driver/inc/usb_type.h=GBK
+encoding//obj/makefile=GBK
+encoding//port/include/watch_dog_port.h=GBK
+encoding//port/timer_port.c=GBK
 encoding//user/main.c=GBK
+encoding//user/usbd_compostie_km.c=GBK
 encoding/<project>=UTF-8
