@@ -88,11 +88,17 @@ void USART_Printf_Init(uint32_t baudrate)
     USART_InitTypeDef USART_InitStructure;
 
 #if(DEBUG == DEBUG_UART1)
+    NVIC_InitTypeDef NVIC_InitStructure = { 0 };
+
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE);
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; //TX
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; //RX
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 #elif(DEBUG == DEBUG_UART2)
@@ -115,15 +121,33 @@ void USART_Printf_Init(uint32_t baudrate)
 
 #endif
 
+#if(DEBUG == DEBUG_UART1)
     USART_InitStructure.USART_BaudRate = baudrate;
+    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_Parity = USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+
+#else
+     USART_InitStructure.USART_BaudRate = baudrate;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
     USART_InitStructure.USART_Parity = USART_Parity_No;
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Tx;
 
+#endif
+
 #if(DEBUG == DEBUG_UART1)
+    NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init( &NVIC_InitStructure );
+
     USART_Init(USART1, &USART_InitStructure);
+    USART_ITConfig( USART2, USART_IT_RXNE, ENABLE );
     USART_Cmd(USART1, ENABLE);
 
 #elif(DEBUG == DEBUG_UART2)
@@ -135,6 +159,24 @@ void USART_Printf_Init(uint32_t baudrate)
     USART_Cmd(USART3, ENABLE);
 
 #endif
+}
+
+/*********************************************************************
+ * @fn      USART1_IRQHandler
+ *
+ * @brief   This function handles USART1 global interrupt request.
+ *
+ * @return  none
+ */
+void USART1_IRQHandler(void) __attribute__((interrupt("WCH-Interrupt-fast")));
+void USART1_IRQHandler( void )
+{
+    if( USART_GetITStatus( USART1, USART_IT_RXNE) != RESET )
+    {
+        /* Save the key value received from USART1 */
+        // USART_Recv_Dat = USART_ReceiveData( USART1 ) & 0xFF;
+        USART_ReceiveData( USART1 );
+    }
 }
 
 /*********************************************************************
